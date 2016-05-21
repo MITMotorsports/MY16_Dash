@@ -6,7 +6,7 @@ Can_Controller* Can_Controller::instance = NULL;
 Can_Controller::Can_Controller () 
 : begun(false)
 {
-  delegate = MCP_CAN(MCP_CS);
+  delegate = MCP_CAN(MCP_CS_PIN);
 }
 
 Can_Controller& Can_Controller::getInstance() {
@@ -17,17 +17,21 @@ Can_Controller& Can_Controller::getInstance() {
   return *instance;
 }
 
-// Lazy shortcut
 Can_Controller& CAN() {
   return Can_Controller::getInstance();
 }
 
 void Can_Controller::begin() {
+  // Idempotent
   if (begun) {
     return;
   }
   begun = true;
-  pinMode(MCP_INT, INPUT);
+
+  // Set interrupt pin.
+  // DON'T set MCP_CS: mcp_can library does it for us
+  pinMode(MCP_INT_PIN, INPUT);
+
   if (delegate.begin(CAN_500KBPS) != CAN_OK) {
     Serial.print(F("Error when enabling CAN"));
   }
@@ -39,12 +43,50 @@ bool Can_Controller::msgAvailable() {
 
 Frame Can_Controller::read() {
   Frame frame;
-  unsigned char len = 0;
-  delegate.readMsgBuf(&len, frame.body);
+  uint8_t response = delegate.readMsgBuf(&frame.len, frame.body);
+  if (response != CAN_OK) {
+    Serial.print("PROBLEM: ");
+    Serial.println(canResponseToString(response));
+  }
   frame.id = delegate.getCanId();
   return frame;
 }
 
+String Can_Controller::canResponseToString(uint8_t response) {
+  switch (response) {
+    case CAN_OK:
+      return "CAN_OK";
+      break;
+    case CAN_FAILINIT:
+      return "CAN_FAILINIT";
+      break;
+    case CAN_FAILTX:
+      return "CAN_FAILTX";
+      break;
+    case CAN_MSGAVAIL:
+      return "CAN_MSGAVAIL";
+      break;
+    case CAN_NOMSG:
+      return "CAN_NOMSG";
+      break;
+    case CAN_CTRLERROR:
+      return "CAN_CTRLERROR";
+      break;
+    case CAN_GETTXBFTIMEOUT:
+      return "CAN_GETTXBFTIMEOUT";
+      break;
+    case CAN_SENDMSGTIMEOUT:
+      return "CAN_SENDMSGTIMEOUT";
+      break;
+    case CAN_FAIL:
+      return "CAN_FAIL";
+      break;
+    default:
+      return "UNKNOWN_ERROR";
+      break;
+  }
+}
+
 void Can_Controller::write(Frame f) {
-  delegate.sendMsgBuf(f.id, 0, 8, f.body);
+  delegate.sendMsgBuf(f.id, 0, f.len, f.body);
 }

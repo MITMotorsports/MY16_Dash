@@ -22,6 +22,7 @@ void Rtd_Controller::begin() {
   begun = true;
   buzzer.begin();
   light.begin();
+  shutdown();
 }
 
 Rtd_Controller& Rtd_Controller::getInstance() {
@@ -37,14 +38,19 @@ Rtd_Controller& RTD() {
 }
 
 void Rtd_Controller::enable() {
-    enabled = true;
-    buzzer.trigger(1333);
-    light.enable();
+  enabled = true;
+  buzzer.trigger(1333);
+  light.enable();
 }
 
 void Rtd_Controller::disable() {
-    enabled = false;
-    light.disable();
+  enabled = false;
+  light.disable();
+}
+
+void Rtd_Controller::shutdown() {
+  enabled = false;
+  light.shutdown();
 }
 
 bool Rtd_Controller::isEnabled() {

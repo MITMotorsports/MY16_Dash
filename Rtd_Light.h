@@ -14,6 +14,7 @@ class Rtd_Light {
     void begin();
     void enable();
     void disable(int blink_period = RTD_PERIOD);
+    void shutdown();
 };
 
 #endif // RTD_LIGHT_H_

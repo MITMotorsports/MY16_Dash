@@ -13,9 +13,12 @@
 
 class Rtd_Handler {
   public:
+    enum Motor {RightMotor, LeftMotor, MOTORS_LENGTH};
     void begin();
     void handleMessage(Frame& message);
   private:
+    Rtd_Handler();
+    int16_t speeds[MOTORS_LENGTH];
     void processVcuMessage(Frame& message);
     void processSpeedMessage(Frame& message);
     void processSocMessage(Frame& message);

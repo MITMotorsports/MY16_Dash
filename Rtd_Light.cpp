@@ -33,3 +33,8 @@ void Rtd_Light::disable(int period) {
   blinkRTDTask.setPeriodMs(period);
   SoftTimer.add(&blinkRTDTask);
 }
+
+void Rtd_Light::shutdown() {
+  SoftTimer.remove(&blinkRTDTask);
+  set_rtd_light(false);
+}
