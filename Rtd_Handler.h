@@ -13,15 +13,16 @@
 
 class Rtd_Handler {
   public:
+    Rtd_Handler();
     enum Motor {RightMotor, LeftMotor, MOTORS_LENGTH};
     void begin();
     void handleMessage(Frame& message);
   private:
-    Rtd_Handler();
     int16_t speeds[MOTORS_LENGTH];
     void processVcuMessage(Frame& message);
     void processSpeedMessage(Frame& message);
     void processSocMessage(Frame& message);
+    int16_t averageSpeed(Frame& message, int16_t motor_speed);
 };
 
 // Have to have a bunch of non-member functions cause reasons

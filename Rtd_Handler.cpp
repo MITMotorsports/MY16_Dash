@@ -7,8 +7,10 @@ const int MOTOR_SPEED_MODIFIER = 48; //0x30
 
 Debouncer debouncer(RTD_BUTTON_PIN, MODE_CLOSE_ON_PUSH, pressRtdButton, releaseRtdButton);
 
+const int16_t SENTINAL = -32767;
+
 Rtd_Handler::Rtd_Handler()
-  : speeds{0, 0}
+  : speeds{SENTINAL, SENTINAL}
 {
   // Initialization done above
 }
@@ -99,18 +101,38 @@ void Rtd_Handler::processSpeedMessage(Frame& message) {
     speed = -speed;
   }
 
-  // Store most recent speed reading for speed averaging
-  Motor motor_id = message.id == POSITIVE_MOTOR_REQUEST_ID ? LeftMotor : RightMotor;
-  speeds[motor_id] = speed;
-
-  // Get average speed to prevent light jitter
-  int16_t avg_speed = (speeds[RightMotor] + speeds[LeftMotor]) / 2;
-
+  int16_t avg_speed = averageSpeed(message, speed);
   // Scale speed from [0:32767 (aka 2^15 - 1)] to [0:30]
   // This magic number is just 32767/30 rounded
   int scaling_factor = 1092;
   unsigned char scaled_speed = avg_speed / scaling_factor;
   LED().set_lightbar_power(scaled_speed);
+}
+
+int16_t Rtd_Handler::averageSpeed(Frame& message, int16_t motor_speed) {
+  Motor this_motor;
+  Motor other_motor;
+
+  if (message.id == POSITIVE_MOTOR_ID) {
+    this_motor = LeftMotor;
+    other_motor = RightMotor;
+  }
+  else {
+    this_motor = RightMotor;
+    other_motor = LeftMotor;
+  }
+
+  // Store most recent speed reading for speed averaging
+  speeds[this_motor] = motor_speed;
+
+  int16_t avg_speed;
+  if (speeds[other_motor] == SENTINAL) {
+    avg_speed = motor_speed;
+  } else {
+    avg_speed = (speeds[this_motor] + speeds[other_motor]) / 2;
+  }
+
+  return avg_speed;
 }
 
 void Rtd_Handler::processSocMessage(Frame& frame) {
