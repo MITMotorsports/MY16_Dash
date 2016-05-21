@@ -12,6 +12,8 @@ class Rtd_Controller {
     void disable();
     void enable();
     void shutdown();
+    void insaneModeOn();
+    void insaneModeOff();
     bool isEnabled();
   private:
     //Private constructors

@@ -45,12 +45,20 @@ void Rtd_Controller::enable() {
 
 void Rtd_Controller::disable() {
   enabled = false;
-  light.disable();
+  light.disable(500);
 }
 
 void Rtd_Controller::shutdown() {
   enabled = false;
   light.shutdown();
+}
+
+void Rtd_Controller::insaneModeOn() {
+  light.disable(100);
+}
+
+void Rtd_Controller::insaneModeOff() {
+  light.enable();
 }
 
 bool Rtd_Controller::isEnabled() {

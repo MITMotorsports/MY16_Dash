@@ -7,6 +7,10 @@ const int MOTOR_SPEED_MODIFIER = 48; //0x30
 
 Debouncer debouncer(RTD_BUTTON_PIN, MODE_CLOSE_ON_PUSH, pressRtdButton, releaseRtdButton);
 
+// Used in evil insane mode hack
+bool carEnabled = false;
+bool insaneModeOn = false;
+
 const int16_t SENTINAL = -32767;
 
 Rtd_Handler::Rtd_Handler()
@@ -31,6 +35,18 @@ void sendDisableRequest() {
 }
 
 bool sendEnableRequestWrapper(Task*) {
+  if (RTD().isEnabled()) {
+    if (insaneModeOn) {
+      // Insane mode already on, so turn it off
+      Frame frame = {.id=INSANE_MODE_ID, .body={0}, .len=1};
+      CAN().write(frame);
+    }
+    else {
+      // Insane mode currently off, so turn it on
+      Frame frame = {.id=INSANE_MODE_ID, .body={1}, .len=1};
+      CAN().write(frame);
+    }
+  }
   sendEnableRequest();
   enableFired = true;
   return false;
@@ -61,6 +77,9 @@ void Rtd_Handler::handleMessage(Frame& frame) {
     case VCU_ID:
       processVcuMessage(frame);
       break;
+    case INSANE_MODE_RESPONSE_ID:
+      processInsaneModeMessage(frame);
+      break;
     case BMS_SOC_ID:
       processSocMessage(frame);
       break;
@@ -73,18 +92,31 @@ void Rtd_Handler::handleMessage(Frame& frame) {
 
 void Rtd_Handler::processVcuMessage(Frame& message) {
   if (message.body[0] == 0) {
-    // Shutdown the light
     RTD().disable();
+    insaneModeOn = false;
   }
   else if (message.body[0] == 1) {
     RTD().enable();
   }
   else if (message.body[0] == 2) {
+    // Shutdown the light
     RTD().shutdown();
+    insaneModeOn = false;
   }
   else {
     // Should never happen
     Serial.println(F("Should never happen"));
+  }
+}
+
+void Rtd_Handler::processInsaneModeMessage(Frame& message) {
+  if (message.body[0] == 0) {
+    insaneModeOn = false;
+    RTD().insaneModeOff();
+  }
+  else {
+    insaneModeOn = true;
+    RTD().insaneModeOn();
   }
 }
 

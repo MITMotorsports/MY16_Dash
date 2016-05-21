@@ -22,6 +22,7 @@ class Rtd_Handler {
     void processVcuMessage(Frame& message);
     void processSpeedMessage(Frame& message);
     void processSocMessage(Frame& message);
+    void processInsaneModeMessage(Frame& message);
     int16_t averageSpeed(Frame& message, int16_t motor_speed);
 };
 

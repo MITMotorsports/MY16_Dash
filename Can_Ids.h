@@ -4,6 +4,8 @@
 const int CAN_NODE_ID = 1; //0x001
 const int DASH_ID = 2; //0x002
 const int VCU_ID = 3; //0x003
+const int INSANE_MODE_ID = 4; // 0x004
+const int INSANE_MODE_RESPONSE_ID = 5; // 0x005
 const int NEGATIVE_MOTOR_ID = 485; //0x1e5
 const int POSITIVE_MOTOR_ID = 486; //0x1e6
 const int NEGATIVE_MOTOR_REQUEST_ID = 592; //0x250
