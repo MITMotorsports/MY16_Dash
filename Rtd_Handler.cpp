@@ -82,6 +82,14 @@ void Rtd_Handler::processVcuMessage(Frame& message) {
   else if (message.body[0] == 2) {
     RTD().shutdown();
   }
+  else if (message.body[0] == 3) {
+    // Overheat goes off
+    LED().set_lightbar_overheat(false);
+  }
+  else if (message.body[0] == 4) {
+    // Overheat goes on
+    LED().set_lightbar_overheat(true);
+  }
   else {
     // Should never happen
     Serial.println(F("Should never happen"));
