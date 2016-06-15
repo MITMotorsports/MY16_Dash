@@ -7,7 +7,7 @@ uint16_t lightbar_state[4] = {0,0,0,0};
 unsigned char battery_reading = 0;
 unsigned char power_reading = 0;
 
-bool overheat = false;
+bool fault = false;
 
 Led_Controller* Led_Controller::instance = NULL;
 
@@ -158,12 +158,12 @@ void Led_Controller::flexBackwards() {
   lightBarUpdate(input);
 }
 
-void Led_Controller::set_lightbar_overheat(bool value) {
-  if(value == overheat) {
+void Led_Controller::set_lightbar_fault(bool value) {
+  if(value == fault) {
     return;
   }
-  overheat = value;
-  if(overheat) {
+  fault = value;
+  if(fault) {
     // Make it hot
     lightbar_state[1] = (lightbar_state[1] | 0x0003);
     lightbar_state[2] = (lightbar_state[2] | 0xC000);
@@ -193,8 +193,8 @@ void Led_Controller::set_lightbar_power(unsigned char value) {
     second_half = getOnes16(value - 16);
   }
 
-  // Set first half to not clobber overheat
-  first_half = overheat ? (first_half | 0xC000) : (first_half & 0x3FFF);
+  // Set first half to not clobber fault light
+  first_half = fault ? (first_half | 0xC000) : (first_half & 0x3FFF);
 
   lightbar_state[2] = first_half;
   lightbar_state[3] = second_half;
@@ -216,7 +216,7 @@ void Led_Controller::set_lightbar_battery(unsigned char value) {
   }
 
   // Set second half to not clobber overheat
-  second_half = overheat ? (second_half | 0x0003) : (second_half & 0xFFFC);
+  second_half = fault ? (second_half | 0x0003) : (second_half & 0xFFFC);
 
   lightbar_state[0] = first_half;
   lightbar_state[1] = second_half;

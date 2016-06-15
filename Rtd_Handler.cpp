@@ -84,11 +84,11 @@ void Rtd_Handler::processVcuMessage(Frame& message) {
   }
   else if (message.body[0] == 3) {
     // Overheat goes off
-    LED().set_lightbar_overheat(false);
+    LED().set_lightbar_fault(false);
   }
   else if (message.body[0] == 4) {
     // Overheat goes on
-    LED().set_lightbar_overheat(true);
+    LED().set_lightbar_fault(true);
   }
   else {
     // Should never happen

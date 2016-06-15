@@ -14,7 +14,7 @@ class Led_Controller {
     uint16_t getBinary16(uint16_t val);
     void set_lightbar_power(unsigned char power);
     void set_lightbar_battery(unsigned char power);
-    void set_lightbar_overheat(bool value);
+    void set_lightbar_fault(bool value);
     void lightBarUpdate(uint16_t states[4]);
   private:
     Led_Controller();
