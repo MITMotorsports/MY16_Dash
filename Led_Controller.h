@@ -12,7 +12,7 @@ class Led_Controller {
     void flex();
     void shiftOut16(uint16_t val);
     uint16_t getBinary16(uint16_t val);
-    void set_lightbar_power(unsigned char power);
+    void set_lightbar_temperature(unsigned char temp);
     void set_lightbar_battery(unsigned char power);
     void set_lightbar_fault(bool value);
     void lightBarUpdate(uint16_t states[4]);

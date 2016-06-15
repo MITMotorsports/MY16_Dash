@@ -3,14 +3,14 @@
 // Non-member variable used in timer function pointers
 bool enableFired = false;
 
-const int MOTOR_SPEED_MODIFIER = 48; //0x30
+const int MOTOR_TEMP_MODIFIER = 74; //0x4A
 
 Debouncer debouncer(RTD_BUTTON_PIN, MODE_CLOSE_ON_PUSH, pressRtdButton, releaseRtdButton);
 
 const int16_t SENTINAL = -32767;
 
 Rtd_Handler::Rtd_Handler()
-  : speeds{SENTINAL, SENTINAL}
+  : temps{SENTINAL, SENTINAL}
 {
   // Initialization done above
 }
@@ -66,7 +66,7 @@ void Rtd_Handler::handleMessage(Frame& frame) {
       break;
     case POSITIVE_MOTOR_ID:
     case NEGATIVE_MOTOR_ID:
-      processSpeedMessage(frame);
+      processTempMessage(frame);
       break;
   }
 }
@@ -96,28 +96,45 @@ void Rtd_Handler::processVcuMessage(Frame& message) {
   }
 }
 
-void Rtd_Handler::processSpeedMessage(Frame& message) {
-  if(message.body[0] != MOTOR_SPEED_MODIFIER) {
-    return;
-  }
-  unsigned char hi_order = message.body[2];
-  unsigned char low_order = message.body[1];
-  uint16_t concat = (hi_order << 8) + low_order;
-  int16_t speed = (int16_t) concat;
-
-  if (speed < 0) {
-    speed = -speed;
-  }
-
-  int16_t avg_speed = averageSpeed(message, speed);
-  // Scale speed from [0:32767 (aka 2^15 - 1)] to [0:30]
-  // This magic number is just 32767/30 rounded
-  int scaling_factor = 1092;
-  unsigned char scaled_speed = avg_speed / scaling_factor;
-  LED().set_lightbar_power(scaled_speed);
+int16_t Rtd_Handler::mergeBytes(uint8_t low, uint8_t high) {
+  uint16_t low_ext = low & 0x00FF;
+  uint16_t high_ext = (high << 8);
+  return high_ext | low_ext;
 }
 
-int16_t Rtd_Handler::averageSpeed(Frame& message, int16_t motor_speed) {
+void Rtd_Handler::processTempMessage(Frame& message) {
+  if(message.body[0] != MOTOR_TEMP_MODIFIER) {
+    return;
+  }
+  uint8_t hi_order = message.body[2];
+  uint8_t low_order = message.body[1];
+  int16_t temp = mergeBytes(low_order, hi_order);
+  temp = maxTemp(message, temp);
+
+  // See http://i.imgur.com/vFoPyEU.png for explanation of conversions.
+  // It isn't exactly linear but whatever close enough
+  //
+  // 17250 = 20 degrees c
+  // 18250 = 30 degrees c
+  // 19250 = 40 degrees c
+  // 20250 = 50 degrees c
+  const int16_t min_temp = 17250;
+  const int16_t max_temp = 20250;
+
+  if (temp < min_temp) {
+    temp = min_temp;
+  }
+  if (temp > max_temp) {
+    temp = max_temp;
+  }
+  temp = temp - min_temp;
+
+  // Next scale from [0:3000] to [0:30]
+  uint8_t scaled_speed = temp / 100;
+  LED().set_lightbar_temperature(scaled_speed);
+}
+
+int16_t Rtd_Handler::maxTemp(Frame& message, int16_t motor_speed) {
   Motor this_motor;
   Motor other_motor;
 
@@ -130,17 +147,12 @@ int16_t Rtd_Handler::averageSpeed(Frame& message, int16_t motor_speed) {
     other_motor = LeftMotor;
   }
 
-  // Store most recent speed reading for speed averaging
-  speeds[this_motor] = motor_speed;
+  // Store most recent speed reading for speed maxing
+  temps[this_motor] = motor_speed;
 
-  int16_t avg_speed;
-  if (speeds[other_motor] == SENTINAL) {
-    avg_speed = motor_speed;
-  } else {
-    avg_speed = (speeds[this_motor] + speeds[other_motor]) / 2;
-  }
+  int16_t max_temp = max(temps[this_motor], temps[other_motor]);
 
-  return avg_speed;
+  return max_temp;
 }
 
 void Rtd_Handler::processSocMessage(Frame& frame) {

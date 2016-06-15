@@ -176,7 +176,7 @@ void Led_Controller::set_lightbar_fault(bool value) {
   lightBarUpdate(lightbar_state);
 }
 
-void Led_Controller::set_lightbar_power(unsigned char value) {
+void Led_Controller::set_lightbar_temperature(unsigned char value) {
   // Don't do work if not necessary
   if(value == power_reading) {
     return;

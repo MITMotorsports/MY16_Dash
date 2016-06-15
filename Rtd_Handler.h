@@ -18,11 +18,12 @@ class Rtd_Handler {
     void begin();
     void handleMessage(Frame& message);
   private:
-    int16_t speeds[MOTORS_LENGTH];
+    int16_t temps[MOTORS_LENGTH];
     void processVcuMessage(Frame& message);
-    void processSpeedMessage(Frame& message);
+    void processTempMessage(Frame& message);
     void processSocMessage(Frame& message);
-    int16_t averageSpeed(Frame& message, int16_t motor_speed);
+    int16_t maxTemp(Frame& message, int16_t motor_speed);
+    int16_t mergeBytes(uint8_t low, uint8_t high);
 };
 
 // Have to have a bunch of non-member functions cause reasons
