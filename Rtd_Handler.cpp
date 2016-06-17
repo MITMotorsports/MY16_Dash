@@ -130,11 +130,11 @@ void Rtd_Handler::processTempMessage(Frame& message) {
   temp = temp - min_temp;
 
   // Next scale from [0:3000] to [0:30]
-  uint8_t scaled_speed = temp / 100;
-  LED().set_lightbar_temperature(scaled_speed);
+  uint8_t scaled_temp = temp / 100;
+  LED().set_lightbar_temperature(scaled_temp);
 }
 
-int16_t Rtd_Handler::maxTemp(Frame& message, int16_t motor_speed) {
+int16_t Rtd_Handler::maxTemp(Frame& message, int16_t motor_temp) {
   Motor this_motor;
   Motor other_motor;
 
@@ -147,8 +147,8 @@ int16_t Rtd_Handler::maxTemp(Frame& message, int16_t motor_speed) {
     other_motor = LeftMotor;
   }
 
-  // Store most recent speed reading for speed maxing
-  temps[this_motor] = motor_speed;
+  // Store most recent temp reading for temp maxing
+  temps[this_motor] = motor_temp;
 
   int16_t max_temp = max(temps[this_motor], temps[other_motor]);
 
