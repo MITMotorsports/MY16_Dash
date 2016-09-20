@@ -3,7 +3,7 @@
 
 #include <DelayRun.h>
 
-const bool BUZZER_ENABLED = true;
+const bool BUZZER_ENABLED = false;
 
 class Buzzer {
   public:
