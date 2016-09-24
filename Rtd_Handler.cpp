@@ -73,13 +73,15 @@ void Rtd_Handler::handleMessage(Frame& frame) {
 
 void Rtd_Handler::processVcuMessage(Frame& message) {
   if (message.body[0] == 0) {
-    // Shutdown the light
+    // Blink the light
     RTD().disable();
   }
   else if (message.body[0] == 1) {
+    // Make light solid
     RTD().enable();
   }
   else if (message.body[0] == 2) {
+    // Turn off light
     RTD().shutdown();
   }
   else if (message.body[0] == 3) {
